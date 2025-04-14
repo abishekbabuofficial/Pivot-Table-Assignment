@@ -59,6 +59,16 @@ const SelectorPane = ({     //sending the field data as props
 
   return (
     <div className="max-h-[400px] overflow-y-auto w-[200px] border p-2 bg-green-50 ">
+      <button
+            className="px-4 py-1.5 bg-red-400 text-white rounded hover:bg-red-600"
+            onClick={() => {
+              setRowFields([]);
+              setColumnFields([]);
+              setValueFields([]);
+              setAggregationType();
+            }}>
+          Reset
+        </button>
       <CheckboxSection
         label="Row Fields"
         fields={allColumns.categoricalColumns}
@@ -92,6 +102,7 @@ const SelectorPane = ({     //sending the field data as props
           </label>
         ))}
       </div>
+      
     </div>
   );
 };
