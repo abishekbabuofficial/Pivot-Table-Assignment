@@ -61,7 +61,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
 
     Object.entries(colGroup).forEach(([colKey, valueMap]) => {
       valueFields.forEach((v) => {
-        const fieldKey = `${colKey} | ${v}`;
+        const fieldKey = `${colKey}`;
         const values = valueMap[v];
         rowObj[fieldKey] = aggregate(values, aggType);
       });
@@ -80,3 +80,5 @@ function aggregate(arr, type) {
   if (type === "count") return arr.length;
   return 0;
 }
+
+
