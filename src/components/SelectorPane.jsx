@@ -15,12 +15,12 @@ const SelectorPane = ({     //sending the field data as props
   const [allFields, setAllFields] = useState([]); //setting state for all field names in table
 
   const allColumns = columnFilter(uploadedData);  //filters the fields based on numerical and catergorical
-  console.log(allColumns.categoricalColumns);
+  // console.log(allColumns.categoricalColumns);
 
   useEffect(() => {
     if (uploadedData && uploadedData.length > 0) {
       setAllFields(Object.keys(uploadedData[0]));
-      console.log(rowFields, columnFields, valueFields, aggregationType);
+      // console.log(rowFields, columnFields, valueFields, aggregationType);
     }
   }, [uploadedData]);
 

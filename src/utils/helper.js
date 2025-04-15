@@ -35,7 +35,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   }
   const result = {};
   const getKey = (obj, keys) => keys.map((k) => obj[k]).join(" | ");
-
+  
   data.forEach((row) => {
     const rowKey = getKey(row, rowFields);
     const colKey = getKey(row, colFields);
@@ -81,4 +81,36 @@ function aggregate(arr, type) {
   return 0;
 }
 
+export function nestedHeaders(pivotedData){
+  const nestedColumns = {};
+  const normalColumns = [];
 
+  Object.keys(pivotedData[0]).forEach((key) => {
+    if (key.includes(" | ")) {
+      const [parent, child] = key.split(" | ");
+      if (!nestedColumns[parent]) nestedColumns[parent] = [];
+      nestedColumns[parent].push({
+        accessorKey: key,
+        id: key,
+        header: child,
+        cell: (info) => info.getValue(),
+      });
+    } else {
+      normalColumns.push({
+        accessorKey: key,
+        id: key,
+        header: key,
+        cell: (info) => info.getValue() ?? 0,
+      });
+    }
+  });
+ console.log(normalColumns,nestedColumns);
+ 
+  return [
+    ...normalColumns,
+    ...Object.entries(nestedColumns).map(([parent, children]) => ({
+      header: parent,
+      columns: children,
+    })),
+  ];
+}
