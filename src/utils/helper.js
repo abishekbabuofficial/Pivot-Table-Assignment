@@ -28,14 +28,15 @@ export function columnFilter(data) {
   };
 }
 
-//the pivot logic for pivot transformation
+
 export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   if (!rowFields.length && !colFields.length && !valueFields.length) {
     return data;
   }
+
   const result = {};
   const getKey = (obj, keys) => keys.map((k) => obj[k]).join(" | ");
-  
+
   data.forEach((row) => {
     const rowKey = getKey(row, rowFields);
     const colKey = getKey(row, colFields);
@@ -52,26 +53,73 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   });
 
   const pivoted = [];
+  const grandTotals = {}; 
+
+  const allColKeys = new Set();
+  Object.values(result).forEach((colGroup) => {
+    Object.keys(colGroup).forEach((key) => allColKeys.add(key));
+  });
 
   Object.entries(result).forEach(([rowKey, colGroup]) => {
     const rowObj = {};
+
+    // Set row field labels
     rowFields.forEach((rf, idx) => {
       rowObj[rf] = rowKey.split(" | ")[idx];
     });
 
-    Object.entries(colGroup).forEach(([colKey, valueMap]) => {
+    let rowTotal = 0;
+
+    if (colFields.length === 0) {
       valueFields.forEach((v) => {
-        const fieldKey = `${colKey}`;
-        const values = valueMap[v];
-        rowObj[fieldKey] = aggregate(values, aggType);
+        const values = colGroup[""]?.[v] || [];
+        const fieldKey = `${v} (${aggType})`;
+        const aggVal = aggregate(values, aggType);
+        rowObj[fieldKey] = aggVal;
+
+        // Track grand totals
+        if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+        grandTotals[fieldKey] += aggVal;
       });
-    });
+    } else {
+      // Column fields selected
+      allColKeys.forEach((colKey) => {
+        valueFields.forEach((v) => {
+          const fieldKey = `${colKey}`;
+          const values = colGroup[colKey]?.[v] || [];
+          const aggVal = aggregate(values, aggType);
+          rowObj[fieldKey] = aggVal;
+
+          rowTotal += aggVal;
+
+          if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+          grandTotals[fieldKey] += aggVal;
+        });
+      });
+
+      rowObj["Row Total"] = rowTotal;
+      if (!grandTotals["Row Total"]) grandTotals["Row Total"] = 0;
+      grandTotals["Row Total"] += rowTotal;
+    }
 
     pivoted.push(rowObj);
   });
 
+  // Add Grand Total Row
+  const grandTotalRow = {};
+  rowFields.forEach((rf, idx) => {
+    grandTotalRow[rf] = idx === 0 ? "Grand Total" : "";
+  });
+
+  Object.entries(grandTotals).forEach(([key, value]) => {
+    grandTotalRow[key] = value;
+  });
+
+  pivoted.push(grandTotalRow);
+
   return pivoted;
 }
+
 
 function aggregate(arr, type) {
   if (type === "sum") return arr.reduce((a, b) => a + b, 0);
@@ -81,11 +129,21 @@ function aggregate(arr, type) {
   return 0;
 }
 
+
+
 export function nestedHeaders(pivotedData){
+
+  if (!pivotedData?.length) return []
+
+  const allKeys = new Set()
+  pivotedData.forEach(row =>
+    Object.keys(row).forEach(k => allKeys.add(k))
+  )
+
   const nestedColumns = {};
   const normalColumns = [];
 
-  Object.keys(pivotedData[0]).forEach((key) => {
+  allKeys.forEach((key) => {
     if (key.includes(" | ")) {
       const [parent, child] = key.split(" | ");
       if (!nestedColumns[parent]) nestedColumns[parent] = [];
@@ -114,3 +172,6 @@ export function nestedHeaders(pivotedData){
     })),
   ];
 }
+
+
+
