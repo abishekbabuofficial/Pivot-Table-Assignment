@@ -72,28 +72,52 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
 
     if (colFields.length === 0) {
       valueFields.forEach((v) => {
-        const values = colGroup[""]?.[v] || [];
-        const fieldKey = `${v} (${aggType})`;
-        const aggVal = aggregate(values, aggType);
-        rowObj[fieldKey] = aggVal;
+        // const values = colGroup[""]?.[v] || [];
+        // const fieldKey = `${v} | (${aggType})`;
+        // const aggVal = aggregate(values, aggType);
+        // rowObj[fieldKey] = aggVal;
 
-        // Track grand totals
-        if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
-        grandTotals[fieldKey] += aggVal;
+        // // Track grand totals
+        // if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+        // grandTotals[fieldKey] += aggVal;
+        aggType.forEach((aggType) => {
+          const values = colGroup[""]?.[v] || [];
+          const fieldKey = `${v}|${aggType}`;
+          const aggVal = aggregate(values, aggType);
+          rowObj[fieldKey] = aggVal;
+      
+          if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+          grandTotals[fieldKey] += aggVal;
+        });
+      
       });
     } else {
       // Column fields selected
       allColKeys.forEach((colKey) => {
+        // valueFields.forEach((v) => {
+        //   const fieldKey = `${colKey}`;
+        //   const values = colGroup[colKey]?.[v] || [];
+        //   const aggVal = aggregate(values, aggType);
+        //   rowObj[fieldKey] = aggVal;
+
+        //   rowTotal += aggVal;
+
+        //   if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+        //   grandTotals[fieldKey] += aggVal;
+        // });
+
         valueFields.forEach((v) => {
-          const fieldKey = `${colKey}`;
-          const values = colGroup[colKey]?.[v] || [];
-          const aggVal = aggregate(values, aggType);
-          rowObj[fieldKey] = aggVal;
-
-          rowTotal += aggVal;
-
-          if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
-          grandTotals[fieldKey] += aggVal;
+          aggType.forEach((aggType) => {
+            const fieldKey = `${colKey}|${v}(${aggType})`;
+            const values = colGroup[colKey]?.[v] || [];
+            const aggVal = aggregate(values, aggType);
+            rowObj[fieldKey] = aggVal;
+        
+            rowTotal += aggVal;
+        
+            if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+            grandTotals[fieldKey] += aggVal;
+          });
         });
       });
       
@@ -115,7 +139,6 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   Object.entries(grandTotals).forEach(([key, value]) => {
     grandTotalRow[key] = value;
   });
-  console.log('grand',grandTotalRow);
   pivoted.push(grandTotalRow);
 
   return pivoted;
@@ -132,30 +155,100 @@ function aggregate(arr, type) {
 
 
 
-export function nestedHeaders(pivotedData){
+// export function nestedHeaders(pivotedData){
 
-  if (!pivotedData?.length) return []
+//   if (!pivotedData?.length) return []
 
-  const allKeys = new Set()
+//   const allKeys = new Set()
+//   pivotedData.forEach(row =>
+//     Object.keys(row).forEach(k => allKeys.add(k))
+//   )
+
+//   const nestedColumns = {};
+//   const normalColumns = [];
+
+//   allKeys.forEach((key) => {
+//     if (key.includes(" | ")) {
+//       const [parent, child] = key.split(" | ");
+//       if (!nestedColumns[parent]) nestedColumns[parent] = [];
+//       nestedColumns[parent].push({
+//         accessorKey: key,
+//         id: key,
+//         header: child,
+//         cell: (info) => info.getValue(),
+//       });
+//     } else {
+//       normalColumns.push({
+//         accessorKey: key,
+//         id: key,
+//         header: key,
+//         cell: (info) => info.getValue() ?? 0,
+//       });
+//     }
+//   });
+//  console.log(normalColumns,nestedColumns);
+ 
+//   return [
+//     ...normalColumns,
+//     ...Object.entries(nestedColumns).map(([parent, children]) => ({
+//       header: parent,
+//       columns: children,
+//     })),
+//   ];
+// }
+
+export function nestedHeaders(pivotedData) {
+  if (!pivotedData?.length) return [];
+
+  const allKeys = new Set();
   pivotedData.forEach(row =>
     Object.keys(row).forEach(k => allKeys.add(k))
-  )
+  );
 
-  const nestedColumns = {};
-  const normalColumns = [];
+  const topLevelColumns = [];
+
+  const buildNested = (parts, accessorKey) => {
+    if (parts.length === 1) {
+      return {
+        accessorKey,
+        id: accessorKey,
+        header: parts[0],
+        cell: (info) => info.getValue() ?? 0,
+      };
+    }
+
+    return {
+      header: parts[0],
+      columns: [buildNested(parts.slice(1), accessorKey)],
+    };
+  };
+
+  const mergeColumns = (columns) => {
+    const merged = [];
+
+    for (const col of columns) {
+      const existing = merged.find((c) => c.header === col.header);
+      if (existing) {
+        existing.columns.push(...col.columns);
+      } else {
+        merged.push({ ...col });
+      }
+    }
+
+    return merged.map((col) => {
+      if (col.columns) {
+        col.columns = mergeColumns(col.columns);
+      }
+      return col;
+    });
+  };
 
   allKeys.forEach((key) => {
-    if (key.includes(" | ")) {
-      const [parent, child] = key.split(" | ");
-      if (!nestedColumns[parent]) nestedColumns[parent] = [];
-      nestedColumns[parent].push({
-        accessorKey: key,
-        id: key,
-        header: child,
-        cell: (info) => info.getValue(),
-      });
+    if (key.includes("|")) {
+      const parts = key.split("|").map(p => p.trim());
+      topLevelColumns.push(buildNested(parts, key));
     } else {
-      normalColumns.push({
+      topLevelColumns.push({
         accessorKey: key,
         id: key,
         header: key,
@@ -163,16 +256,10 @@ export function nestedHeaders(pivotedData){
       });
     }
   });
- console.log(normalColumns,nestedColumns);
- 
-  return [
-    ...normalColumns,
-    ...Object.entries(nestedColumns).map(([parent, children]) => ({
-      header: parent,
-      columns: children,
-    })),
-  ];
+
+  return mergeColumns(topLevelColumns);
 }
+
 
 
 export function dateModifier(data){

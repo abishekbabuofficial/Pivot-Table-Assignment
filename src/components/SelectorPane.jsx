@@ -57,6 +57,14 @@ const SelectorPane = ({     //sending the field data as props
     </div>
   );
 
+  const handleAggCheckboxChange = (agg) => {
+    if (aggregationType.includes(agg)) {
+      setAggregationType(aggregationType.filter((a) => a !== agg));
+    } else {
+      setAggregationType([...aggregationType, agg]);
+    }
+  };
+
   return (
     <div className="max-h-[400px] overflow-y-auto w-[200px] border p-2 bg-green-50 ">
       <button
@@ -65,7 +73,7 @@ const SelectorPane = ({     //sending the field data as props
               setRowFields([]);
               setColumnFields([]);
               setValueFields([]);
-              setAggregationType();
+              setAggregationType([]);
             }}>
           Reset
         </button>
@@ -92,11 +100,10 @@ const SelectorPane = ({     //sending the field data as props
         {["sum", "average", "count"].map((type) => (
           <label key={type} style={{ display: "block", marginLeft: "10px" }}>
             <input
-              type="radio"
-              name="aggregation"
+              type="checkbox"
               value={type}
-              checked={aggregationType === type}
-              onChange={() => setAggregationType(type)}
+              checked={aggregationType.includes(type)}
+              onChange={() => handleAggCheckboxChange(type)}
             />{" "}
             {type}
           </label>
