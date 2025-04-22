@@ -1,5 +1,6 @@
 import React from "react";
 import * as XLSX from "xlsx";
+import { dateModifier } from "../utils/helper";
 
 function FileUploader({ dataParsed }) {
   const handleFileUpload = (e) => {
@@ -8,12 +9,14 @@ function FileUploader({ dataParsed }) {
 
     reader.onload = (event) => {
       const fileData = new Uint8Array(event.target?.result);
-      const workbook = XLSX.read(fileData, { type: "array" });
+      const workbook = XLSX.read(fileData, { type: "array", cellDates:true });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      dataParsed(sheetData);
+      const dateFormattedData = dateModifier(sheetData)
+
+      dataParsed(dateFormattedData);
     };
 
     reader.readAsArrayBuffer(file);

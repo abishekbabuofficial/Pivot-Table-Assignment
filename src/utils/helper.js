@@ -96,16 +96,17 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
           grandTotals[fieldKey] += aggVal;
         });
       });
+      
 
       rowObj["Row Total"] = rowTotal;
       if (!grandTotals["Row Total"]) grandTotals["Row Total"] = 0;
       grandTotals["Row Total"] += rowTotal;
     }
-
+    
     pivoted.push(rowObj);
   });
 
-  // Add Grand Total Row
+  // Add Grand Total Column wise
   const grandTotalRow = {};
   rowFields.forEach((rf, idx) => {
     grandTotalRow[rf] = idx === 0 ? "Grand Total" : "";
@@ -114,7 +115,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   Object.entries(grandTotals).forEach(([key, value]) => {
     grandTotalRow[key] = value;
   });
-
+  console.log('grand',grandTotalRow);
   pivoted.push(grandTotalRow);
 
   return pivoted;
@@ -174,4 +175,15 @@ export function nestedHeaders(pivotedData){
 }
 
 
-
+export function dateModifier(data){
+  return data.map((row) => {
+    const newRow = { ...row };
+    Object.keys(newRow).forEach((key) => {
+      const value = newRow[key];
+      if (value instanceof Date && !isNaN(value)) {
+        newRow[key] = value.toLocaleDateString("en-GB");
+      }
+    });
+    return newRow;
+  });
+}
