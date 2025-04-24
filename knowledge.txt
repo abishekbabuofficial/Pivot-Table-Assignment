@@ -1,2 +1,10 @@
-=> need to change date field
-=> implement multi aggregation
+
+Done so far:
+=> Value based aggregation
+=> 
+
+To do:
+=> Drag and drop
+=> Header should be empty
+=> Column sort
+=> Y/Q/M date splitting

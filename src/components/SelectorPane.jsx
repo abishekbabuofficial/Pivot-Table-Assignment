@@ -13,6 +13,9 @@ const SelectorPane = ({     //sending the field data as props
   setAggregationType,
 }) => {
   const [allFields, setAllFields] = useState([]); //setting state for all field names in table
+  console.log(aggregationType);
+  
+  
 
   const allColumns = columnFilter(uploadedData);  //filters the fields based on numerical and catergorical
   // console.log(allColumns.categoricalColumns);
@@ -95,7 +98,35 @@ const SelectorPane = ({     //sending the field data as props
         selectedFields={valueFields}
         setSelectedFields={setValueFields}
       />
-      <div style={{ marginBottom: "1rem" }}>
+
+{valueFields.map((valueField) => (
+  <div key={valueField} className="mb-2">
+    <h4 className="font-semibold">{valueField} Aggregations</h4>
+    {["sum", "average", "count"].map((agg) => (
+      <label key={agg} className="block ml-4">
+        <input
+          type="checkbox"
+          checked={aggregationType[valueField]?.includes(agg) || false}
+          onChange={() => {
+            const currentAggs = aggregationType[valueField] || [];
+            const newAggs = currentAggs.includes(agg)
+              ? currentAggs.filter((a) => a !== agg)
+              : [...currentAggs, agg];
+            setAggregationType({
+              ...aggregationType,
+              [valueField]: newAggs,
+            });
+          }}
+        />{" "}
+        {agg}
+      </label>
+    ))}
+  </div>
+))}
+
+
+
+      {/* <div style={{ marginBottom: "1rem" }}>
         <h4>Aggregation</h4>
         {["sum", "average", "count"].map((type) => (
           <label key={type} style={{ display: "block", marginLeft: "10px" }}>
@@ -108,7 +139,7 @@ const SelectorPane = ({     //sending the field data as props
             {type}
           </label>
         ))}
-      </div>
+      </div> */}
       
     </div>
   );

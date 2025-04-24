@@ -13,9 +13,7 @@ function FileUploader({ dataParsed }) {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
       const dateFormattedData = dateModifier(sheetData)
-
       dataParsed(dateFormattedData);
     };
 

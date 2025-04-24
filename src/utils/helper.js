@@ -29,7 +29,7 @@ export function columnFilter(data) {
 }
 
 
-export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
+export function pivotLogic(data, rowFields, colFields, valueFields, aggregationType) {
   if (!rowFields.length && !colFields.length && !valueFields.length) {
     return data;
   }
@@ -56,10 +56,13 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   const grandTotals = {}; 
 
   const allColKeys = new Set();
+  //setting all columns to allcolkeys
   Object.values(result).forEach((colGroup) => {
     Object.keys(colGroup).forEach((key) => allColKeys.add(key));
   });
 
+
+  //pivot logic starts
   Object.entries(result).forEach(([rowKey, colGroup]) => {
     const rowObj = {};
 
@@ -80,11 +83,11 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
         // // Track grand totals
         // if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
         // grandTotals[fieldKey] += aggVal;
-        aggType.forEach((aggType) => {
+        (aggregationType[v] || []).forEach((aggType) => {
           const values = colGroup[""]?.[v] || [];
           const fieldKey = `${v}|${aggType}`;
           const aggVal = aggregate(values, aggType);
-          rowObj[fieldKey] = aggVal;
+          rowObj[fieldKey] = aggVal.toFixed(2);
       
           if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
           grandTotals[fieldKey] += aggVal;
@@ -107,22 +110,21 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
         // });
 
         valueFields.forEach((v) => {
-          aggType.forEach((aggType) => {
+          (aggregationType[v] || []).forEach((aggType) => {
             const fieldKey = `${colKey}|${v}(${aggType})`;
             const values = colGroup[colKey]?.[v] || [];
             const aggVal = aggregate(values, aggType);
-            rowObj[fieldKey] = aggVal;
+            rowObj[fieldKey] = aggVal.toFixed(2);
         
             rowTotal += aggVal;
-        
             if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
             grandTotals[fieldKey] += aggVal;
           });
         });
       });
       
-
-      rowObj["Row Total"] = rowTotal;
+      //grand total row wise
+      rowObj["Row Total"] = rowTotal.toFixed(2);
       if (!grandTotals["Row Total"]) grandTotals["Row Total"] = 0;
       grandTotals["Row Total"] += rowTotal;
     }
@@ -137,7 +139,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
   });
 
   Object.entries(grandTotals).forEach(([key, value]) => {
-    grandTotalRow[key] = value;
+    grandTotalRow[key] = value.toFixed(2);
   });
   pivoted.push(grandTotalRow);
 
@@ -145,57 +147,23 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggType) {
 }
 
 
-function aggregate(arr, type) {
-  if (type === "sum") return arr.reduce((a, b) => a + b, 0);
-  if (type === "average")
-    return arr.reduce((a, b) => a + b, 0) / arr.length || 0;
-  if (type === "count") return arr.length;
-  return 0;
+
+
+
+function aggregate(values, type) {
+  switch (type) {
+    case "sum": return values.reduce((a, b) => a + b, 0);
+    case "average": return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+    case "count": return values.length;
+    default: return 0;
+  }
 }
 
 
 
-// export function nestedHeaders(pivotedData){
 
-//   if (!pivotedData?.length) return []
 
-//   const allKeys = new Set()
-//   pivotedData.forEach(row =>
-//     Object.keys(row).forEach(k => allKeys.add(k))
-//   )
 
-//   const nestedColumns = {};
-//   const normalColumns = [];
-
-//   allKeys.forEach((key) => {
-//     if (key.includes(" | ")) {
-//       const [parent, child] = key.split(" | ");
-//       if (!nestedColumns[parent]) nestedColumns[parent] = [];
-//       nestedColumns[parent].push({
-//         accessorKey: key,
-//         id: key,
-//         header: child,
-//         cell: (info) => info.getValue(),
-//       });
-//     } else {
-//       normalColumns.push({
-//         accessorKey: key,
-//         id: key,
-//         header: key,
-//         cell: (info) => info.getValue() ?? 0,
-//       });
-//     }
-//   });
-//  console.log(normalColumns,nestedColumns);
- 
-//   return [
-//     ...normalColumns,
-//     ...Object.entries(nestedColumns).map(([parent, children]) => ({
-//       header: parent,
-//       columns: children,
-//     })),
-//   ];
-// }
 
 export function nestedHeaders(pivotedData) {
   if (!pivotedData?.length) return [];
@@ -263,14 +231,22 @@ export function nestedHeaders(pivotedData) {
 
 
 export function dateModifier(data){
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
   return data.map((row) => {
     const newRow = { ...row };
     Object.keys(newRow).forEach((key) => {
       const value = newRow[key];
       if (value instanceof Date && !isNaN(value)) {
-        newRow[key] = value.toLocaleDateString("en-GB");
+        newRow[key] = value.toLocaleDateString("en-GB",options);
       }
     });
+    console.log(newRow);
+    
     return newRow;
   });
 }
+

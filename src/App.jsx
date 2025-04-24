@@ -11,7 +11,7 @@ function App() {
   const [rowFields, setRowFields] = useState([]);
   const [columnFields, setColumnFields] = useState([]);
   const [valueFields, setValueFields] = useState([]);
-  const [aggregationType, setAggregationType] = useState(['sum']);
+  const [aggregationType, setAggregationType] = useState({});
 
   
   return (

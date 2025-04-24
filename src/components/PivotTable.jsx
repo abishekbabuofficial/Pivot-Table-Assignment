@@ -14,7 +14,7 @@ const PivotTable = ({
   valueFields,
   aggregationType,
 }) => {
-  console.log("Normal Data",data);
+  // console.log("Normal Data",data);
   
   const pivotedData = useMemo(() => {
     //store the pivot changes applied data in memo
@@ -50,7 +50,7 @@ const PivotTable = ({
     enableColumnResizing: true,
   });
 
-  console.log("pivot is here",pivotedData);
+  // console.log("pivot is here",pivotedData);
 
   //rendering the table
   return (
