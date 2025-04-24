@@ -5,7 +5,7 @@ import {
   flexRender,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import { columnFilter, nestedHeaders, pivotLogic } from "../utils/helper";
+import { nestedHeaders, pivotLogic } from "../utils/helper";
 
 const PivotTable = ({
   data,
@@ -29,15 +29,7 @@ const PivotTable = ({
     );
   }, [data, rowFields, columnFields, valueFields, aggregationType]);
 
-  // const columns = useMemo(() => {                   //storings the columns of the pivoted or original table
-  //   if (!pivotedData || pivotedData.length === 0) return data; //on no selection shows origianl table
 
-  //   return Object.keys(pivotedData[0]).map((key) => ({
-  //     accessorKey: key,
-  //     header: key,
-  //     
-  //   }));
-  // }, [pivotedData]);
   const columns = nestedHeaders(pivotedData);
 
   const table = useReactTable({

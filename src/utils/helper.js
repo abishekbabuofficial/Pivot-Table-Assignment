@@ -138,9 +138,32 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggregationT
     grandTotalRow[rf] = idx === 0 ? "Grand Total" : "";
   });
 
-  Object.entries(grandTotals).forEach(([key, value]) => {
-    grandTotalRow[key] = value.toFixed(2);
-  });
+  // Object.entries(grandTotals).forEach(([key, value]) => {
+  //   grandTotalRow[key] = value.toFixed(2);
+  // });
+const allFieldKeys = Object.keys(pivoted[0] || {}).filter(key => !rowFields.includes(key));
+
+  allFieldKeys.forEach((colKey) =>{
+    const values = [];
+    pivoted.forEach((row)=>{
+      if(Object.keys(row)!=="Row Total"){
+      const val = Number(row[colKey]);
+      if(!isNaN(val)) values.push(val);}
+    });
+    let total = 0;
+    if(!valueFields.length){
+      total = values.reduce((a,b) => a+b,0);
+    }
+    else{
+      if(colKey.includes("sum") || colKey.includes('count')){
+        total = values.reduce((a,b) => a+b,0);
+      }else if(colKey.includes('average')){
+        total = values.reduce((a,b) => a+b,0)/values.length;
+      }
+    }
+    grandTotalRow[colKey] = total.toFixed(2);
+  }
+);
   pivoted.push(grandTotalRow);
 
   return pivoted;
@@ -242,7 +265,7 @@ export function dateModifier(data){
       const value = newRow[key];
       if (value instanceof Date && !isNaN(value)) {
         newRow[key] = value.toLocaleDateString("en-GB",options);
-      }
+      } 
     });
     console.log(newRow);
     
