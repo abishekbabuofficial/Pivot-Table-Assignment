@@ -5,7 +5,7 @@ import {
   flexRender,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import { nestedHeaders, pivotLogic } from "../utils/helper";
+import { addDateVariants, nestedHeaders, pivotLogic } from "../utils/helper";
 
 const PivotTable = ({
   data,
@@ -15,6 +15,7 @@ const PivotTable = ({
   aggregationType,
 }) => {
   // console.log("Normal Data",data);
+  
   
   const pivotedData = useMemo(() => {
     //store the pivot changes applied data in memo
@@ -28,6 +29,9 @@ const PivotTable = ({
       aggregationType
     );
   }, [data, rowFields, columnFields, valueFields, aggregationType]);
+
+  console.log('pivoted',pivotedData);
+  
 
 
   const columns = nestedHeaders(pivotedData);

@@ -12,9 +12,10 @@ export function columnFilter(data) {
     const sampleValue = data.find(
       (row) => row[col] !== null && row[col] !== undefined && row[col] !== ""
     )?.[col];
+    
 
     if (sampleValue !== undefined) {
-      if (!isNaN(Number(sampleValue))) {
+      if (!isNaN(Number(sampleValue)) && !col.includes("Yearly")) {
         numericColumns.push(col);
       } else {
         categoricalColumns.push(col);
@@ -55,12 +56,14 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggregationT
   const pivoted = [];
   const grandTotals = {}; 
 
-  const allColKeys = new Set();
+  const allColKey = new Set();
+
   //setting all columns to allcolkeys
   Object.values(result).forEach((colGroup) => {
-    Object.keys(colGroup).forEach((key) => allColKeys.add(key));
+    Object.keys(colGroup).forEach((key) => allColKey.add(key));
   });
 
+ const allColKeys = Array.from(allColKey).sort()
 
   //pivot logic starts
   Object.entries(result).forEach(([rowKey, colGroup]) => {
@@ -191,10 +194,13 @@ function aggregate(values, type) {
 export function nestedHeaders(pivotedData) {
   if (!pivotedData?.length) return [];
 
+  
   const allKeys = new Set();
   pivotedData.forEach(row =>
     Object.keys(row).forEach(k => allKeys.add(k))
   );
+  
+  
 
   const topLevelColumns = [];
 
@@ -209,6 +215,7 @@ export function nestedHeaders(pivotedData) {
     }
 
     return {
+      id: parts.join("-"),
       header: parts[0],
       columns: [buildNested(parts.slice(1), accessorKey)],
     };
@@ -247,10 +254,14 @@ export function nestedHeaders(pivotedData) {
       });
     }
   });
-
   return mergeColumns(topLevelColumns);
 }
 
+
+function isDateField(key){
+  const DATE_KEYWORDS = ["date", "invoice", "bill", "dob", "joining", "expiry"," on","started","renewal","before"];
+  return DATE_KEYWORDS.some((word) => key.toLowerCase().includes(word));
+}
 
 
 export function dateModifier(data){
@@ -264,11 +275,51 @@ export function dateModifier(data){
     Object.keys(newRow).forEach((key) => {
       const value = newRow[key];
       if (value instanceof Date && !isNaN(value)) {
-        newRow[key] = value.toLocaleDateString("en-GB",options);
-      } 
+        newRow[key] = value.toLocaleDateString("en-GB");
+      } else if (
+        typeof value === "number" &&
+        value > 25569 && 
+        value < 60000    && isDateField(key)
+      ) {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 29));
+        
+        const date = new Date(excelEpoch.getTime() + value * 86400000);
+        newRow[key] = date.toLocaleDateString("en-GB");
+      }
     });
-    console.log(newRow);
+    // console.log(newRow);
     
+    return newRow;
+  });
+}
+
+import { parse, format } from "date-fns";
+
+export function addDateVariants(data) {
+
+  return data.map((row) => {
+    const newRow = { ...row };
+
+    Object.keys(newRow).forEach((key) => {
+      const val = newRow[key];
+
+      // match format like "15 Jan 2024"
+      // const isDateStr = /^\d{1,2} \w{3,5} \d{4}$/.test(val);
+      const isDateStr = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(val);
+      if (isDateStr) {
+        try {
+          const parsedDate = parse(val, "d/M/yyyy", new Date());
+          newRow[`${key} (Monthly)`] = format(parsedDate, "MMMM"); // Jan 2024
+          newRow[`${key} (Yearly)`] = format(parsedDate, "yyyy");       // 2024
+          newRow[`${key} (Quarterly)`] =
+            "Q" + Math.ceil((parsedDate.getMonth() + 1) / 3) + " " + parsedDate.getFullYear(); // Q1 2024
+        
+          } catch (e) {
+          // skip invalid dates silently
+        }
+      }
+    });
+
     return newRow;
   });
 }

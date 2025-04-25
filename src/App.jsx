@@ -12,6 +12,7 @@ function App() {
   const [columnFields, setColumnFields] = useState([]);
   const [valueFields, setValueFields] = useState([]);
   const [aggregationType, setAggregationType] = useState({});
+  
 
   
   return (

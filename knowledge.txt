@@ -1,10 +1,11 @@
 
 Done so far:
 => Value based aggregation
-=> 
+=> Avg total
+=> Date issue Fixed
+=> Sorted columns
+=> Y/M/Q value segregated
 
 To do:
 => Drag and drop
 => Header should be empty
-=> Column sort
-=> Y/Q/M date splitting
