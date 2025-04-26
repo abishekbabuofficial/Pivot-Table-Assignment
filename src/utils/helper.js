@@ -12,6 +12,7 @@ export function columnFilter(data) {
     const sampleValue = data.find(
       (row) => row[col] !== null && row[col] !== undefined && row[col] !== ""
     )?.[col];
+    
 
     if (sampleValue !== undefined) {
       if (!isNaN(Number(sampleValue)) && !col.includes("Yearly")) {
@@ -28,13 +29,8 @@ export function columnFilter(data) {
   };
 }
 
-export function pivotLogic(
-  data,
-  rowFields,
-  colFields,
-  valueFields,
-  aggregationType
-) {
+
+export function pivotLogic(data, rowFields, colFields, valueFields, aggregationType) {
   if (!rowFields.length && !colFields.length && !valueFields.length) {
     return data;
   }
@@ -53,12 +49,12 @@ export function pivotLogic(
     }
 
     valueFields.forEach((v) => {
-      result[rowKey][colKey][v].push(Number(row[v]) || "");
+      result[rowKey][colKey][v].push(Number(row[v]) || null); //this line replaces the value we push to pivot
     });
   });
 
   const pivoted = [];
-  const grandTotals = {};
+  const grandTotals = {}; 
 
   const allColKey = new Set();
 
@@ -67,7 +63,7 @@ export function pivotLogic(
     Object.keys(colGroup).forEach((key) => allColKey.add(key));
   });
 
-  const allColKeys = Array.from(allColKey).sort();
+ const allColKeys = Array.from(allColKey).sort()
 
   //pivot logic starts
   Object.entries(result).forEach(([rowKey, colGroup]) => {
@@ -87,42 +83,43 @@ export function pivotLogic(
           const fieldKey = `${v}|${aggType}`;
           const aggVal = aggregate(values, aggType);
           rowObj[fieldKey] = aggVal.toFixed(2);
-
+      
           if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
           grandTotals[fieldKey] += aggVal;
         });
+      
       });
     } else {
       // Column fields selected
       allColKeys.forEach((colKey) => {
-
         valueFields.forEach((v) => {
           (aggregationType[v] || []).forEach((aggType) => {
             const fieldKey = `${colKey}|${v}(${aggType})`;
             const values = colGroup[colKey]?.[v] || [];
             if (values.length === 0) {
-              rowObj[fieldKey] = ""; // Set null if no values
-            } else {
-              const aggVal = aggregate(values, aggType);
-              rowObj[fieldKey] =
-                typeof aggVal === "number" ? aggVal.toFixed(2) : null;
-
-              if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
-              if (typeof aggVal === "number") {
-                grandTotals[fieldKey] += aggVal;
-                rowTotal += aggVal;
-              }
+              rowObj[fieldKey] = ''; // Set null if no values
+            }else{
+            
+            const aggVal = aggregate(values, aggType);
+                rowObj[fieldKey] =
+                  typeof aggVal === "number" ? aggVal.toFixed(2) : null;
+  
+                if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
+                if (typeof aggVal === "number") {
+                  rowTotal += aggVal;
+                  grandTotals[fieldKey] += aggVal;
+                }
             }
           });
         });
       });
-
+      
       //grand total row wise
       rowObj["Row Total"] = rowTotal.toFixed(2);
       if (!grandTotals["Row Total"]) grandTotals["Row Total"] = 0;
       grandTotals["Row Total"] += rowTotal;
     }
-
+    
     pivoted.push(rowObj);
   });
 
@@ -132,68 +129,81 @@ export function pivotLogic(
     grandTotalRow[rf] = idx === 0 ? "Grand Total" : "";
   });
 
-// For Calculating Grand Total based on aggregation
-  const allFieldKeys = Object.keys(pivoted[0] || {}).filter(
-    (key) => !rowFields.includes(key)
-  );
+  // Object.entries(grandTotals).forEach(([key, value]) => {
+  //   grandTotalRow[key] = value.toFixed(2);
+  // });
+  console.log(pivoted);
+  
+const allFieldKeys = Object.keys(pivoted[0] || {}).filter(key => !rowFields.includes(key));
+console.log('dfjldjf',allFieldKeys);
 
-  allFieldKeys.forEach((colKey) => {
+
+  allFieldKeys.forEach((colKey) =>{
     const values = [];
-    pivoted.forEach((row) => {
+    pivoted.forEach((row)=>{
       const val = Number(row[colKey]);
-      if (!isNaN(val)) values.push(val);
+      if(!isNaN(val)) values.push(val);
     });
     console.log(values);
+    
 
-    const valLength = values.filter((num) => num).length; //for non null value length
+    const valLength = values.filter(num=> num).length //for non null value length
 
     let total = 0;
-    if (!valueFields.length) {
-      total = values.reduce((a, b) => a + b, 0);
-    } else {
-      if (
-        colKey.includes("sum") ||
-        colKey.includes("count") ||
-        colKey.includes("Total")
-      ) {
-        total = aggregate(values, "sum");
-      } else if (colKey.includes("average")) {
-        total = values.reduce((a, b) => a + b, 0) / valLength;
+    if(!valueFields.length){
+      total = values.reduce((a,b) => a+b,0);
+    }
+    else{
+      if(colKey.includes("sum") || colKey.includes('count') || colKey.includes('Total')){
+        total = aggregate(values,'sum')
+      }else if(colKey.includes('average')){
+
+        total = values.reduce((a,b) => a+b,0)/valLength;
       }
     }
     grandTotalRow[colKey] = total.toFixed(2);
-  });
+  }
+);
   pivoted.push(grandTotalRow);
 
   return pivoted;
 }
 
+
+
+
+
 function aggregate(values, type) {
   switch (type) {
-    case "sum":
-      return values.reduce((a, b) => a + b, 0);
-    case "average":
-      return values.length
-        ? values.reduce((a, b) => a + b, 0) / values.length
-        : 0;
-    case "count":
-      return values.length;
-    default:
-      return 0;
+    case "sum": return values.reduce((a, b) => a + b, 0);
+    case "average": return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+    case "count": return values.length;
+    default: return null;
   }
 }
+
+
+
+
+
+
 
 export function nestedHeaders(pivotedData) {
   if (!pivotedData?.length) return [];
 
+  
   const allKeys = new Set();
-  pivotedData.forEach((row) => Object.keys(row).forEach((k) => allKeys.add(k)));
+  pivotedData.forEach(row =>
+    Object.keys(row).forEach(k => allKeys.add(k))
+  );
+  
+  
 
   const topLevelColumns = [];
   const alreadyHeader = [];
   const buildNested = (parts, accessorKey) => {
     if (parts.length === 1) {
-      alreadyHeader.push(parts[0]);
+      alreadyHeader.push(parts[0])
       return {
         accessorKey,
         id: accessorKey,
@@ -231,7 +241,7 @@ export function nestedHeaders(pivotedData) {
 
   allKeys.forEach((key) => {
     if (key.includes("|")) {
-      const parts = key.split("|").map((p) => p.trim());
+      const parts = key.split("|").map(p => p.trim());
       topLevelColumns.push(buildNested(parts, key));
     } else {
       topLevelColumns.push({
@@ -245,23 +255,14 @@ export function nestedHeaders(pivotedData) {
   return mergeColumns(topLevelColumns);
 }
 
-function isDateField(key) {
-  const DATE_KEYWORDS = [
-    "date",
-    "invoice",
-    "bill",
-    "dob",
-    "joining",
-    "expiry",
-    " on",
-    "started",
-    "renewal",
-    "before",
-  ];
+
+function isDateField(key){
+  const DATE_KEYWORDS = ["date", "invoice", "bill", "dob", "joining", "expiry"," on","started","renewal","before"];
   return DATE_KEYWORDS.some((word) => key.toLowerCase().includes(word));
 }
 
-export function dateModifier(data) {
+
+export function dateModifier(data){
   const options = {
     year: "numeric",
     month: "short",
@@ -275,18 +276,17 @@ export function dateModifier(data) {
         newRow[key] = value.toLocaleDateString("en-GB");
       } else if (
         typeof value === "number" &&
-        value > 25569 &&
-        value < 60000 &&
-        isDateField(key)
+        value > 25569 && 
+        value < 60000    && isDateField(key)
       ) {
         const excelEpoch = new Date(Date.UTC(1899, 11, 29));
-
+        
         const date = new Date(excelEpoch.getTime() + value * 86400000);
         newRow[key] = date.toLocaleDateString("en-GB");
       }
     });
     // console.log(newRow);
-
+    
     return newRow;
   });
 }
@@ -294,6 +294,7 @@ export function dateModifier(data) {
 import { parse, format } from "date-fns";
 
 export function addDateVariants(data) {
+
   return data.map((row) => {
     const newRow = { ...row };
 
@@ -307,13 +308,11 @@ export function addDateVariants(data) {
         try {
           const parsedDate = parse(val, "d/M/yyyy", new Date());
           newRow[`${key} (Monthly)`] = format(parsedDate, "MMMM"); // Jan 2024
-          newRow[`${key} (Yearly)`] = format(parsedDate, "yyyy"); // 2024
+          newRow[`${key} (Yearly)`] = format(parsedDate, "yyyy");       // 2024
           newRow[`${key} (Quarterly)`] =
-            "Q" +
-            Math.ceil((parsedDate.getMonth() + 1) / 3) +
-            " " +
-            parsedDate.getFullYear(); // Q1 2024
-        } catch (e) {
+            "Q" + Math.ceil((parsedDate.getMonth() + 1) / 3) + " " + parsedDate.getFullYear(); // Q1 2024
+        
+          } catch (e) {
           // skip invalid dates silently
         }
       }
@@ -322,3 +321,4 @@ export function addDateVariants(data) {
     return newRow;
   });
 }
+
