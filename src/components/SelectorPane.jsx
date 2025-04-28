@@ -14,7 +14,7 @@ const SelectorPane = ({     //sending the field data as props
 }) => {
   const [allFields, setAllFields] = useState([]); //setting state for all field names in table
   // console.log(aggregationType);
-
+  const allSelectedFields = [...rowFields, ...columnFields, ...valueFields];
   
   
 
@@ -40,6 +40,7 @@ const SelectorPane = ({     //sending the field data as props
     fields,
     selectedFields,
     setSelectedFields,
+    disableField
   }) => (
     <div className="mb-1">
       <h4>{label}</h4>
@@ -48,6 +49,7 @@ const SelectorPane = ({     //sending the field data as props
           <label key={field} style={{ display: "block", marginLeft: "10px" }}>
             <input
               type="checkbox"
+              disabled={disableField?.includes(field)}
               checked={selectedFields.includes(field)}
               onChange={() =>
                 handleCheckboxChange(field, setSelectedFields, selectedFields)
@@ -79,12 +81,14 @@ const SelectorPane = ({     //sending the field data as props
         fields={allColumns.categoricalColumns}
         selectedFields={rowFields}
         setSelectedFields={setRowFields}
+        disableField={columnFields}
       />
       <CheckboxSection
         label="Column Fields"
         fields={allColumns.categoricalColumns}
         selectedFields={columnFields}
         setSelectedFields={setColumnFields}
+        disableField={rowFields}
       />
       <CheckboxSection
         label="Value Fields"

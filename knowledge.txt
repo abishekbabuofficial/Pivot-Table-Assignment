@@ -9,4 +9,3 @@ Done so far:
 To do:
 => Drag and drop
 => Header should be empty
-=> disable selected
