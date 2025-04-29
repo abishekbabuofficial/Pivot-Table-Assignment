@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   getPaginationRowModel,
+  getSortedRowModel,
 } from "@tanstack/react-table";
 import { nestedHeaders, pivotLogic } from "../utils/helper";
 
@@ -15,6 +16,8 @@ const PivotTable = ({
   aggregationType,
 }) => {
   // console.log("Normal Data",data);
+
+  const [sort, setsort] = useState([]);
 
   const pivotedData = useMemo(() => {
     //store the pivot changes applied data in memo
@@ -42,6 +45,11 @@ const PivotTable = ({
     getPaginationRowModel: getPaginationRowModel(),
     columnResizeMode: "onChange",
     enableColumnResizing: true,
+    getSortedRowModel: getSortedRowModel(),
+    state:{
+      sorting: sort
+    },
+    onSortingChange: setsort,
   });
 
   // console.log("pivot is here",pivotedData);
@@ -49,18 +57,19 @@ const PivotTable = ({
   //rendering the table
   return (
     <div className="flex flex-col">
-      <div className="max-h-[400px] max-w-[750px] overflow-auto border rounded shadow">
+      <div className="max-h-[400px] max-w-[750px] overflow-auto">
         {/* <div className='tableInnerDiv'> */}
         <div className="min-w-max ">
           <div className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <div
                 key={headerGroup.id}
-                className="border-b flex text-center p-0"
+                className=" flex text-center p-0"
               >
                 {headerGroup.headers.map((header) => (
                   <div
                     key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
                     className="p-2 bg-gray-100 border text-left relative"
                     style={{
                       width: header.getSize(),
@@ -73,6 +82,11 @@ const PivotTable = ({
                       header.column.columnDef.header,
                       header.getContext()
                     )}
+                  {
+                      {
+                        asc: "🔼", desc:"🔽"
+                      }[header.column.getIsSorted() ?? null]
+                    }
                     {header.column.getCanResize() && (
                       <button
                         onMouseDown={header.getResizeHandler()}

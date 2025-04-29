@@ -82,7 +82,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggregationT
           const values = colGroup[""]?.[v] || [];
           const fieldKey = `${v}|${aggType}`;
           const aggVal = aggregate(values, aggType);
-          rowObj[fieldKey] = aggVal.toFixed(2);
+          Number.isInteger(aggVal)?rowObj[fieldKey] = aggVal:rowObj[fieldKey] = aggVal.toFixed(2);
       
           if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
           grandTotals[fieldKey] += aggVal;
@@ -102,7 +102,7 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggregationT
             
             const aggVal = aggregate(values, aggType);
                 rowObj[fieldKey] =
-                  typeof aggVal === "number" ? aggVal.toFixed(2) : null;
+                  typeof aggVal === "number" ? (Number.isInteger(aggVal)?rowObj[fieldKey] = aggVal:rowObj[fieldKey] = aggVal.toFixed(2)) : null;
   
                 if (!grandTotals[fieldKey]) grandTotals[fieldKey] = 0;
                 if (typeof aggVal === "number") {
@@ -132,10 +132,9 @@ export function pivotLogic(data, rowFields, colFields, valueFields, aggregationT
   // Object.entries(grandTotals).forEach(([key, value]) => {
   //   grandTotalRow[key] = value.toFixed(2);
   // });
-  console.log(pivoted);
+  //console.log(pivoted);
   
 const allFieldKeys = Object.keys(pivoted[0] || {}).filter(key => !rowFields.includes(key));
-console.log('dfjldjf',allFieldKeys);
 
 
   allFieldKeys.forEach((colKey) =>{
@@ -144,7 +143,7 @@ console.log('dfjldjf',allFieldKeys);
       const val = Number(row[colKey]);
       if(!isNaN(val)) values.push(val);
     });
-    console.log(values);
+    // console.log(values);
     
 
     const valLength = values.filter(num=> num).length //for non null value length

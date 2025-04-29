@@ -7,5 +7,4 @@ Done so far:
 => Y/M/Q value segregated
 
 To do:
-=> Drag and drop
 => Header should be empty

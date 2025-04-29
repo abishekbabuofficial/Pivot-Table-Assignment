@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import FileUploader from './components/FileUploader'
 import PivotTable from './components/PivotTable'
+// import SelectorPane from './components/SelectorPane'
 import SelectorPane from './components/SelectorPane'
 
 
@@ -19,13 +20,17 @@ function App() {
     <div className='flex flex-col items-center'>
       <FileUploader dataParsed = {setData}/>
       
-      <div className='flex gap-4'>
-        {data.length>0 &&<> <PivotTable 
+      <div className='flex p-2'>
+        {data.length>0 &&<> 
+        <div className='w-[750px]'>
+          <PivotTable 
         data = {data}
         rowFields={rowFields}
         columnFields={columnFields}
         valueFields={valueFields}
         aggregationType={aggregationType}/>
+        </div>
+        
 
       <SelectorPane 
       uploadedData={data}
