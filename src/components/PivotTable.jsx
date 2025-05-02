@@ -18,6 +18,11 @@ const PivotTable = ({
   // console.log("Normal Data",data);
 
   const [sort, setsort] = useState([]);
+  const [pagination, setPagination] = useState({
+  pageIndex: 0,
+  pageSize: 8,
+});
+
 
   const pivotedData = useMemo(() => {
     //store the pivot changes applied data in memo
@@ -42,13 +47,15 @@ const PivotTable = ({
     data: pivotedData ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     columnResizeMode: "onChange",
     enableColumnResizing: true,
     getSortedRowModel: getSortedRowModel(),
     state:{
-      sorting: sort
+      sorting: sort,
+      pagination,
     },
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setsort,
   });
 
