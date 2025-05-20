@@ -26,7 +26,7 @@ function App() {
     <div className="flex flex-col items-center justify-center min-h-screen ">
       <FileUploader dataParsed={setData} />
 
-      <div className="flex p-2">
+      <div className="flex p-2 gap-1">
         {data.length > 0 && (
           <>
             <div className="w-[750px]">

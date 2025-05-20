@@ -63,10 +63,10 @@ const PivotTable = ({
   //rendering the table
   return (
     <div className="flex flex-col">
-      <div className="max-h-[412px] max-w-[750px] overflow-auto p-1">
+      <div className="max-h-[412px] max-w-[750px] overflow-auto">
         {/* <div className='tableInnerDiv'> */}
         <div className="min-w-max ">
-          <div className="sticky top-0">
+          <div className="">
             {table.getHeaderGroups().map((headerGroup) => (
               <div key={headerGroup.id} className=" flex">
                 {headerGroup.headers.map((header) => (
