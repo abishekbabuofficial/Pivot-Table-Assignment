@@ -159,7 +159,7 @@ export default function SelectorPane({
             {zoneKey !== "all" && (
               <button
                 onClick={() => handleCancel(f, zoneKey)}
-                className="pt-1 cursor-pointer active:bg-red-300 rounded-2xl flex items-center justify-center"
+                className="pt-1 cursor-pointer  rounded-2xl flex items-center justify-center"
               >
                 <img height={15} width={15} src={cancelIcon} />
               </button>
@@ -219,7 +219,7 @@ export default function SelectorPane({
                     <div className="flex items-center">
                       <button
                         onClick={() => handleCancel(f, "values")}
-                        className="pt-1 cursor-pointer active:bg-red-300 rounded-2xl flex items-center justify-center"
+                        className="pt-1 cursor-pointer rounded-2xl flex items-center justify-center"
                       >
                         <img height={10} width={15} src={cancelIcon} />
                       </button>
