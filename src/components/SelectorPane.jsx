@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { columnFilter } from "../utils/helper";
 import dropDownIcon from "../assets/drop_down_icon.svg";
+import cancelIcon from "../assets/cancel.svg";
 import sumIcon from "../assets/sumSignIcon.svg";
 
 export default function SelectorPane({
@@ -97,6 +98,26 @@ export default function SelectorPane({
     setAggregationType({ ...aggregationType, [field]: next });
   };
 
+  const handleCancel = (field, zone) => {
+    // Remove from current zone
+    if (zone === "rows") {
+      setRowFields((prev) => prev.filter((f) => f !== field));
+    } else if (zone === "columns") {
+      setColumnFields((prev) => prev.filter((f) => f !== field));
+    } else if (zone === "values") {
+      setValueFields((prev) => prev.filter((f) => f !== field));
+      // Also remove any aggregation settings for this field
+      setAggregationType((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
+
+    // Add back to allFields
+    setAllFields((prev) => [field, ...prev]);
+  };
+
   // Renders a styled drop zone
   const DropZone = ({ title, items, zoneKey, acceptType }) => (
     <div
@@ -130,13 +151,19 @@ export default function SelectorPane({
               }`}
             >
               {numericColumns.includes(f) && (
-                <img
-                  src={sumIcon}
-                  className="w-3 h-3 inline-block"
-                />
+                <img src={sumIcon} className="w-3 h-3 inline-block" />
               )}
               {f}
             </span>
+            {/* Only show cancel button for row, column, and value fields */}
+            {zoneKey !== "all" && (
+              <button
+                onClick={() => handleCancel(f, zoneKey)}
+                className="pt-1 cursor-pointer active:bg-red-300 rounded-2xl flex items-center justify-center"
+              >
+                <img height={15} width={15} src={cancelIcon} />
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -189,22 +216,29 @@ export default function SelectorPane({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{f}</span>
-
-                    {/* Button to open aggregation dropdown */}
-                    <button
-                      onClick={() =>
-                        setOpenAggregationField((prev) =>
-                          prev === f ? null : f
-                        )
-                      }
-                      className="text-blue-500 text-sm underline ml-2"
-                    >
-                      {openAggregationField === f ? (
-                        "x"
-                      ) : (
-                        <img height={15} width={15} src={dropDownIcon} />
-                      )}
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => handleCancel(f, "values")}
+                        className="pt-1 cursor-pointer active:bg-red-300 rounded-2xl flex items-center justify-center"
+                      >
+                        <img height={10} width={15} src={cancelIcon} />
+                      </button>
+                      {/* Button to open aggregation dropdown */}
+                      <button
+                        onClick={() =>
+                          setOpenAggregationField((prev) =>
+                            prev === f ? null : f
+                          )
+                        }
+                        className="text-blue-500 ml-2 flex items-center justify-center"
+                      >
+                        {openAggregationField === f ? (
+                          "x"
+                        ) : (
+                          <img height={15} width={15} src={dropDownIcon} />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Dropdown */}

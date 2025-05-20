@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import FileUploader from './components/FileUploader'
 import PivotTable from './components/PivotTable'
 // import SelectorPane from './components/SelectorPane'
 import SelectorPane from './components/SelectorPane'
+import { set } from 'date-fns'
 
 
 function App() {
@@ -14,6 +15,13 @@ function App() {
   const [valueFields, setValueFields] = useState([]);
   const [aggregationType, setAggregationType] = useState({});
   
+  // to refresh selection when new file is uploaded
+  useEffect(() => {
+    setRowFields([]);
+    setColumnFields([]);
+    setValueFields([]);
+    setAggregationType({});
+  },[data])
 
   
   return (
