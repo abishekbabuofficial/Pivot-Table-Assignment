@@ -19,10 +19,9 @@ const PivotTable = ({
 
   const [sort, setsort] = useState([]);
   const [pagination, setPagination] = useState({
-  pageIndex: 0,
-  pageSize: 8,
-});
-
+    pageIndex: 0,
+    pageSize: 8,
+  });
 
   const pivotedData = useMemo(() => {
     //store the pivot changes applied data in memo
@@ -50,7 +49,7 @@ const PivotTable = ({
     columnResizeMode: "onChange",
     enableColumnResizing: true,
     getSortedRowModel: getSortedRowModel(),
-    state:{
+    state: {
       sorting: sort,
       pagination,
     },
@@ -64,15 +63,12 @@ const PivotTable = ({
   //rendering the table
   return (
     <div className="flex flex-col">
-      <div className="max-h-[400px] max-w-[750px] overflow-auto">
+      <div className="max-h-[412px] max-w-[750px] overflow-auto">
         {/* <div className='tableInnerDiv'> */}
         <div className="min-w-max ">
           <div className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
-              <div
-                key={headerGroup.id}
-                className=" flex text-center p-0"
-              >
+              <div key={headerGroup.id} className=" flex text-center p-0">
                 {headerGroup.headers.map((header) => (
                   <div
                     key={header.id}
@@ -89,9 +85,10 @@ const PivotTable = ({
                       header.column.columnDef.header,
                       header.getContext()
                     )}
-                  {
+                    {
                       {
-                        asc: "🔼", desc:"🔽"
+                        asc: "🔼",
+                        desc: "🔽",
                       }[header.column.getIsSorted() ?? null]
                     }
                     {header.column.getCanResize() && (
